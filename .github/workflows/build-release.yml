@@ -29,36 +29,44 @@ jobs:
             node_platform: win-x64
             node_file: node.exe
             node_ext: zip
+            args: --verbose
           - platform: windows-latest
             variant: bundled
             target: x86_64-pc-windows-msvc
             node_platform: win-x64
             node_file: node.exe
             node_ext: zip
+            args: --verbose
           - platform: macos-14
             variant: plain
             target: aarch64-apple-darwin
             node_platform: darwin-arm64
             node_file: node
             node_ext: tar.gz
+            args: --verbose
           - platform: macos-14
             variant: bundled
             target: aarch64-apple-darwin
             node_platform: darwin-arm64
             node_file: node
             node_ext: tar.gz
+            args: --verbose
           - platform: ubuntu-22.04
             variant: plain
             target: x86_64-unknown-linux-gnu
             node_platform: linux-x64
             node_file: node
             node_ext: tar.gz
+            # AppImage 的 linuxdeploy 会对 resources 中的二进制做依赖部署，
+            # server/node_modules 包含大量原生文件会导致 patchelf 失败，故仅打 deb+rpm
+            args: --verbose --bundles deb,rpm
           - platform: ubuntu-22.04
             variant: bundled
             target: x86_64-unknown-linux-gnu
             node_platform: linux-x64
             node_file: node
             node_ext: tar.gz
+            args: --verbose --bundles deb,rpm
     steps:
       - uses: actions/checkout@v4
 
@@ -90,7 +98,8 @@ jobs:
         run: npm --prefix server ci
 
       # 仅 bundled 变体：下载目标平台预编译 Node 放入 src-tauri/binaries/，
-      # 命名遵循 Tauri externalBin 规则：node-<target-triple>(.exe)
+      # 命名遵循 Tauri externalBin 规则：node-<target-triple>(.exe)。
+      # 注意：zip 包的可执行文件在根目录，tar.gz 包的在 bin/ 子目录。
       - name: Download bundled Node.js
         if: matrix.variant == 'bundled'
         shell: bash
@@ -102,13 +111,16 @@ jobs:
           if [ "${{ matrix.node_ext }}" = "zip" ]; then
             curl -fsSL -o /tmp/node.zip "$BASE/$DIR.zip"
             unzip -q /tmp/node.zip -d /tmp
+            SRC="/tmp/$DIR/${{ matrix.node_file }}"
+            DST="node-${{ matrix.target }}.exe"
           else
             curl -fsSL -o /tmp/node.tgz "$BASE/$DIR.tar.gz"
             tar -xzf /tmp/node.tgz -C /tmp
+            SRC="/tmp/$DIR/bin/${{ matrix.node_file }}"
+            DST="node-${{ matrix.target }}"
           fi
-          cp "/tmp/$DIR/${{ matrix.node_file }}" \
-            "$GITHUB_WORKSPACE/src-tauri/binaries/node-${{ matrix.target }}"
-          chmod +x "$GITHUB_WORKSPACE/src-tauri/binaries/node-${{ matrix.target }}" || true
+          cp "$SRC" "$GITHUB_WORKSPACE/src-tauri/binaries/$DST"
+          chmod +x "$GITHUB_WORKSPACE/src-tauri/binaries/$DST" || true
 
       - name: Prepare variant config
         env:
@@ -119,8 +131,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          buildOnly: true
-          args: --verbose
+          # 未提供 tagName，tauri-action 只构建不发布（发布由 release job 统一处理）
+          args: ${{ matrix.args }}
 
       # 两个变体在相同平台会生成同名安装包，统一追加变体后缀，避免 Release 资产冲突
       - name: Rename artifacts with variant suffix
