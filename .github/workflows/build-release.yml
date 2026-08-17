@@ -19,20 +19,42 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
+      # 显式列出 3 平台 × 2 变体（plain=未捆绑 Node / bundled=捆绑 Node）共 6 个组合，
+      # 避免顶层数组与 include 混用时矩阵展开不完整
       matrix:
-        variant: [plain, bundled]
         include:
           - platform: windows-latest
+            variant: plain
+            target: x86_64-pc-windows-msvc
+            node_platform: win-x64
+            node_file: node.exe
+            node_ext: zip
+          - platform: windows-latest
+            variant: bundled
             target: x86_64-pc-windows-msvc
             node_platform: win-x64
             node_file: node.exe
             node_ext: zip
           - platform: macos-14
+            variant: plain
+            target: aarch64-apple-darwin
+            node_platform: darwin-arm64
+            node_file: node
+            node_ext: tar.gz
+          - platform: macos-14
+            variant: bundled
             target: aarch64-apple-darwin
             node_platform: darwin-arm64
             node_file: node
             node_ext: tar.gz
           - platform: ubuntu-22.04
+            variant: plain
+            target: x86_64-unknown-linux-gnu
+            node_platform: linux-x64
+            node_file: node
+            node_ext: tar.gz
+          - platform: ubuntu-22.04
+            variant: bundled
             target: x86_64-unknown-linux-gnu
             node_platform: linux-x64
             node_file: node
