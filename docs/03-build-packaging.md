@@ -74,7 +74,9 @@ npm run tauri build
 
 ## 4. 关于 Node.js 运行时
 
-打包产物**默认仍依赖目标机器安装 Node.js**（`dsh::resolve_node` 依次查找 `DSH_NODE_BIN` → 捆绑 node → PATH）。这是刻意设计：`dsh` 的插件是运行时从 `node_modules` 加载的 JS，无法轻易编译成单文件。
+打包产物**默认仍依赖目标机器安装 Node.js**（`dsh::resolve_node` 依次查找 `DSH_NODE_BIN` → 捆绑 node → PATH → 常见安装位置）。这是刻意设计：`dsh` 的插件是运行时从 `node_modules` 加载的 JS，无法轻易编译成单文件。
+
+> 常见安装位置探测（macOS 的 `/usr/local/bin`、`/opt/homebrew/bin`、`~/.nvm/versions/node/*`；Windows 的 `Program Files\nodejs`；Linux 的 `/usr/local/bin`）是为了覆盖 **GUI 应用从 launchd/Finder 启动时 PATH 不含用户目录** 的场景——终端里 `node` 可用、但双击应用却报「未找到 Node.js」时即属此类。若 node 装在其它自定义位置，用 `DSH_NODE_BIN` 指定。
 
 ### 高级：捆绑 Node 运行时（免安装分发）
 
