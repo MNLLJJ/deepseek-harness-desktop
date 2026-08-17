@@ -169,13 +169,14 @@ jobs:
       - name: List artifacts
         run: find dist -type f -exec ls -lh {} \;
 
+      # glob 精确匹配安装包（DeepSeek* 前缀 + 平台扩展名），
+      # 避免误传构建中间产物（如 winpty-agent/OpenConsole 等 exe）
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/**/*.msi
-            dist/**/*.exe
-            dist/**/*.dmg
-            dist/**/*.AppImage
-            dist/**/*.deb
-            dist/**/*.rpm
+            dist/**/DeepSeek*setup*.exe
+            dist/**/DeepSeek*.msi
+            dist/**/DeepSeek*.dmg
+            dist/**/DeepSeek*.deb
+            dist/**/DeepSeek*.rpm
           generate_release_notes: true
