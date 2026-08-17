@@ -1,0 +1,9 @@
+{
+  "name": "dsh-server-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness 服务端运行时，随桌面应用一起打包",
+  "dependencies": {
+    "@deepseek-ai/dsh": "^0.1.0-rc.6"
+  }
+}

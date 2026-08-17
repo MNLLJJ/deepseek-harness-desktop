@@ -1,0 +1,19 @@
+# Node
+node_modules/
+
+# Vite 构建产物（CI 中由 beforeBuildCommand 重新生成）
+dist/
+
+# Rust 构建产物
+target/
+src-tauri/gen/
+
+# macOS / 编辑器
+.DS_Store
+*.log
+
+# 工作区数据（记忆/临时文件，不入库）
+.workbuddy/
+
+# 本地归档
+归档.zip

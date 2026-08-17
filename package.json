@@ -1,0 +1,20 @@
+{
+  "name": "deepseek-harness-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DeepSeek Harness 桌面应用 —— 基于 Tauri 2 的 dsh Web UI 原生壳",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "setup:server": "npm --prefix server install",
+    "icons": "tauri icon src-tauri/icons/app-icon.png"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "主窗口默认能力：仅开放最小权限，快捷键/菜单/托盘均由 Rust 侧实现，前端无需额外 IPC 权限。",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default",
+    "window-state:default"
+  ]
+}

@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeepSeek Harness</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+          "Microsoft YaHei", sans-serif;
+        background: #0f1117;
+        color: #e6e8ee;
+        transition: background 0.2s;
+      }
+      @media (prefers-color-scheme: light) {
+        body {
+          background: #f5f6fa;
+          color: #1c1e26;
+        }
+      }
+      .card {
+        text-align: center;
+        padding: 32px 40px;
+      }
+      .logo {
+        width: 72px;
+        height: 72px;
+        margin: 0 auto 20px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #4d6bfe, #6a8dff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 34px;
+        font-weight: 700;
+        color: #fff;
+        box-shadow: 0 12px 32px rgba(77, 107, 254, 0.35);
+      }
+      h1 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      .status {
+        font-size: 13px;
+        opacity: 0.7;
+        margin-bottom: 20px;
+      }
+      .spinner {
+        width: 28px;
+        height: 28px;
+        margin: 0 auto;
+        border: 3px solid rgba(77, 107, 254, 0.25);
+        border-top-color: #4d6bfe;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .hint {
+        display: none;
+        margin-top: 24px;
+        font-size: 12px;
+        line-height: 1.7;
+        color: #d9776f;
+        text-align: left;
+        max-width: 420px;
+        background: rgba(217, 119, 111, 0.08);
+        border: 1px solid rgba(217, 119, 111, 0.25);
+        border-radius: 10px;
+        padding: 14px 16px;
+      }
+      .hint code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">&gt;_</div>
+      <h1>DeepSeek Harness</h1>
+      <p class="status" id="status">正在启动本地服务…</p>
+      <div class="spinner" id="spinner"></div>
+      <div class="hint" id="hint">
+        服务启动超时。可能原因：<br />
+        1. 未安装 Node.js（&gt;= 20），或未在 PATH 中；<br />
+        2. 未安装 server 依赖，请运行
+        <code>npm run setup:server</code>；<br />
+        3. 端口被占用，可设置 <code>DSH_PORT</code> 换端口后重启。 <br />
+        日志位置见应用日志目录下的 <code>dsh.log</code>。
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
