@@ -39,16 +39,30 @@ npm run tauri build -- --bundles appimage   # 仅 AppImage
 
 ### macOS 签名/公证（分发到其他机器）
 
-```bash
-# 设置环境变量后构建
-export APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAMID)"
-export APPLE_CERTIFICATE="<base64 of .p12>"
-export APPLE_CERTIFICATE_PASSWORD="..."
-export APPLE_ID="your@email.com"
-export APPLE_PASSWORD="app-specific-password"
-export APPLE_TEAM_ID="TEAMID"
-npm run tauri build
-```
+> ⚠️ **未签名/未公证的 .app 在其它 Mac 上打开会提示「软件已损坏，无法打开」**
+> （Gatekeeper 拦截带 `com.apple.quarantine` 隔离属性的未签名应用）。这是**预期行为**，不是安装包损坏。
+>
+> **临时绕过（自用/内部分发）**：
+> ```bash
+> # 挂载 dmg 后，对应用移除隔离属性即可打开（实测可用）
+> sudo xattr -dr com.apple.quarantine "/Applications/DeepSeek Harness.app"
+> # 或先把应用拖入 /Applications，再执行上面的命令
+> ```
+
+**正式分发请配置 Developer ID 签名 + 公证**，这样用户在其它 Mac 上双击即可打开：
+
+1. 在仓库 Settings → Secrets and variables → Actions 配置：
+   | Secret | 说明 |
+   |---|---|
+   | `APPLE_CERTIFICATE` | Developer ID Application 证书导出的 .p12 的 base64 |
+   | `APPLE_CERTIFICATE_PASSWORD` | .p12 密码 |
+   | `APPLE_SIGNING_IDENTITY` | 证书名，如 `Developer ID Application: Your Name (TEAMID)` |
+   | `APPLE_ID` / `APPLE_PASSWORD` | Apple ID + app 专用密码（用于公证） |
+   | `APPLE_TEAM_ID` | 开发者 Team ID |
+
+2. 推送 `v*` tag 构建时，CI 的 macOS job 检测到 secrets 后会自动签名 + 公证（未配置则回退为 ad-hoc 签名，见下方说明）。
+
+> 说明：`tauri.conf.json` 已设 `bundle.macOS.signingIdentity: "-"`，即默认对 .app 做 **ad-hoc 签名**（修复 Gatekeeper 对无签名 bundle 的额外校验问题）；配置 `APPLE_SIGNING_IDENTITY` secret 后 CI 会用 Developer ID 覆盖它。
 
 ### Windows 代码签名
 
