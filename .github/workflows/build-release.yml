@@ -127,6 +127,23 @@ jobs:
           VARIANT: ${{ matrix.variant }}
         run: node scripts/ci-prepare.mjs
 
+      # 可选：配置 Apple Developer ID 签名 + 公证所需的 secrets（未配置则跳过）。
+      # 配置后 Tauri 会自动对 .app 签名并提交公证，Gatekeeper 完全放行，无需用户 xattr 绕过。
+      # 需在仓库 Settings → Secrets 配置：APPLE_CERTIFICATE(p12 base64)、APPLE_CERTIFICATE_PASSWORD、
+      # APPLE_SIGNING_IDENTITY(证书名，如 "Developer ID Application: xxx")、APPLE_ID、APPLE_PASSWORD(app专用)、APPLE_TEAM_ID。
+      - name: Inject Apple signing secrets
+        if: runner.os == 'macOS' && env.HAS_APPLE_CERT != ''
+        env:
+          HAS_APPLE_CERT: ${{ secrets.APPLE_CERTIFICATE }}
+        run: |
+          echo "APPLE_CERTIFICATE=${{ secrets.APPLE_CERTIFICATE }}" >> "$GITHUB_ENV"
+          echo "APPLE_CERTIFICATE_PASSWORD=${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "APPLE_SIGNING_IDENTITY=${{ secrets.APPLE_SIGNING_IDENTITY }}" >> "$GITHUB_ENV"
+          echo "APPLE_ID=${{ secrets.APPLE_ID }}" >> "$GITHUB_ENV"
+          echo "APPLE_PASSWORD=${{ secrets.APPLE_PASSWORD }}" >> "$GITHUB_ENV"
+          echo "APPLE_TEAM_ID=${{ secrets.APPLE_TEAM_ID }}" >> "$GITHUB_ENV"
+          echo "TAURI_SIGNING_IDENTITY=${{ secrets.APPLE_SIGNING_IDENTITY }}" >> "$GITHUB_ENV"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

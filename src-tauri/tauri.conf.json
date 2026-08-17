@@ -30,6 +30,9 @@
     ],
     "category": "DeveloperTool",
     "shortDescription": "DeepSeek Harness 桌面应用",
-    "longDescription": "基于 Tauri 2 的 DeepSeek Harness（dsh）Web UI 原生桌面壳。"
+    "longDescription": "基于 Tauri 2 的 DeepSeek Harness（dsh）Web UI 原生桌面壳。",
+    "macOS": {
+      "signingIdentity": "-"
+    }
   }
 }
