@@ -1,6 +1,6 @@
 [package]
 name = "deepseek-harness-desktop"
-version = "0.1.0"
+version = "0.1.2"
 description = "DeepSeek Harness 桌面应用 —— 基于 Tauri 2 的 dsh Web UI 原生壳"
 authors = ["you"]
 edition = "2021"

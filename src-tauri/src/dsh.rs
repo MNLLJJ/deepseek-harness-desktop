@@ -64,7 +64,52 @@ pub fn find_free_port(preferred: u16) -> u16 {
         .unwrap_or(preferred)
 }
 
-/// 解析 Node 可执行文件：`DSH_NODE_BIN` → 资源目录内捆绑的 node → PATH。
+/// 资源目录内的候选根目录：Tauri 2 把 bundle.resources 放在 `<resource_dir>/_up_/` 下
+/// （updater 兼容布局，v2.1+ 默认），旧布局直接放在 `<resource_dir>/` 下，两种都探测。
+fn resource_bases(app: &tauri::AppHandle) -> Vec<PathBuf> {
+    let mut bases = Vec::new();
+    if let Ok(res) = app.path().resource_dir() {
+        bases.push(res.join("_up_"));
+        bases.push(res);
+    }
+    bases
+}
+
+/// 常见 Node 安装位置（GUI 应用从 launchd 启动时 PATH 不含用户/包管理器目录）。
+fn common_node_paths() -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    #[cfg(target_os = "macos")]
+    {
+        paths.push(PathBuf::from("/usr/local/bin/node")); // Intel Homebrew
+        paths.push(PathBuf::from("/opt/homebrew/bin/node")); // Apple Silicon Homebrew
+        if let Ok(home) = std::env::var("HOME") {
+            // nvm 多版本，取版本号最高的一个
+            let nvm = PathBuf::from(&home).join(".nvm/versions/node");
+            if let Ok(entries) = std::fs::read_dir(&nvm) {
+                let mut vers: Vec<_> = entries
+                    .filter_map(|e| e.ok())
+                    .map(|e| e.path())
+                    .collect();
+                vers.sort();
+                if let Some(last) = vers.last() {
+                    paths.push(last.join("bin/node"));
+                }
+            }
+        }
+    }
+    #[cfg(target_os = "windows")]
+    {
+        paths.push(PathBuf::from(r"C:\Program Files\nodejs\node.exe"));
+        paths.push(PathBuf::from(r"C:\Program Files (x86)\nodejs\node.exe"));
+    }
+    #[cfg(target_os = "linux")]
+    {
+        paths.push(PathBuf::from("/usr/local/bin/node"));
+    }
+    paths
+}
+
+/// 解析 Node 可执行文件：`DSH_NODE_BIN` → 资源目录内捆绑的 node → PATH → 常见安装位置。
 pub fn resolve_node(app: &tauri::AppHandle) -> String {
     // 1) 显式指定
     if let Ok(p) = std::env::var("DSH_NODE_BIN") {
@@ -78,8 +123,8 @@ pub fn resolve_node(app: &tauri::AppHandle) -> String {
     let node_name = "node.exe";
     #[cfg(not(target_os = "windows"))]
     let node_name = "node";
-    if let Ok(res) = app.path().resource_dir() {
-        for cand in [res.join("binaries").join(node_name), res.join(node_name)] {
+    for base in resource_bases(app) {
+        for cand in [base.join("binaries").join(node_name), base.join(node_name)] {
             // 同时校验存在性与可执行性，避免选中无执行权限的占位文件
             if cand.is_file() && Command::new(&cand).arg("--version").output().is_ok() {
                 return cand.to_string_lossy().into_owned();
@@ -93,13 +138,20 @@ pub fn resolve_node(app: &tauri::AppHandle) -> String {
             return cand.to_string();
         }
     }
+
+    // 4) 常见安装位置（覆盖 GUI 环境 PATH 不含 node 的情况）
+    for cand in common_node_paths() {
+        if cand.is_file() && Command::new(&cand).arg("--version").output().is_ok() {
+            return cand.to_string_lossy().into_owned();
+        }
+    }
     node_name.to_string()
 }
 
-/// 定位启动器脚本：打包后取资源目录，开发期取源码目录。
+/// 定位启动器脚本：打包后取资源目录（兼容 `_up_` 布局），开发期取源码目录。
 pub fn launcher_path(app: &tauri::AppHandle) -> PathBuf {
-    if let Ok(res) = app.path().resource_dir() {
-        let p = res.join("server").join("launch-dsh.js");
+    for base in resource_bases(app) {
+        let p = base.join("server").join("launch-dsh.js");
         if p.exists() {
             return p;
         }

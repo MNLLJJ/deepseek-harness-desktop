@@ -103,10 +103,10 @@ fn spawn_server(app: &tauri::App) {
     let server = match dsh::spawn(app.handle(), &launcher, port, &home, &log_file) {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("[dsh] 启动服务失败: {e}");
+            eprintln!("[dsh] 启动服务失败: {e}（请确认 Node.js 已安装，或设置 DSH_NODE_BIN）");
             if let Some(w) = app.get_webview_window("main") {
                 let _ = w.eval(
-                    "window.dispatchEvent(new CustomEvent('dsh-status', { detail: { phase: 'error', message: '启动服务失败' } }));",
+                    "window.dispatchEvent(new CustomEvent('dsh-status', { detail: { phase: 'error', message: '启动服务失败：未找到 Node.js，请安装或设置 DSH_NODE_BIN' } }));",
                 );
             }
             return;
